@@ -131,6 +131,34 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)
+        //{
+        //    if (appointmentDto == null)
+        //    {
+        //        return BadRequest("Invalid appointment data.");
+        //    }
+
+        //    var existingAppointment = await _service.GetAppointmentByIdAsync(id);
+        //    if (existingAppointment == null)
+        //    {
+        //        return NotFound($"No appointment found with ID: {id}");
+        //    }
+
+        //    // Convert to PST
+        //    TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        //    DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
+
+        //    // Validate appointment time in PST
+        //    if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
+        //    {
+        //        return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
+        //    }
+
+        //    await _service.UpdateAppointmentAsync(id, appointmentDto);
+        //    return NoContent();
+        //}
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)
         {
@@ -156,8 +184,15 @@ namespace AppointmentManagementAPI.Controllers
             }
 
             await _service.UpdateAppointmentAsync(id, appointmentDto);
-            return NoContent();
+
+            return Ok(new
+            {
+                message = "Appointment updated successfully",
+                id = id,
+                updatedTime = appointmentPST.ToString("yyyy-MM-dd hh:mm tt") + " PST"
+            });
         }
+
 
         [HttpPut("complete/{id}")]
         public async Task<IActionResult> CompleteAppointment(int id)
