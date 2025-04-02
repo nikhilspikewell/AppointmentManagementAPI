@@ -1,94 +1,6 @@
-﻿//using AppointmentManagementAPI.DTOs;
-//using AppointmentManagementAPI.Models;
-//using AppointmentManagementAPI.Repositories;
-//using AutoMapper;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
-
-
-//namespace AppointmentManagementAPI.Services
-//{
-//    public class AppointmentService : IAppointmentService
-//    {
-//        private readonly IAppointmentRepository _repository;
-//        private readonly IMapper _mapper;
-
-//        public AppointmentService(IAppointmentRepository repository, IMapper mapper)
-//        {
-//            _repository = repository;
-//            _mapper = mapper;
-//        }
-
-//        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsAsync()
-//        {
-//            var appointments = await _repository.GetAppointmentsAsync();
-//            return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
-//        }
-//        public async Task<AppointmentDTO?> GetAppointmentByIdAsync(int id)
-//        {
-//            var appointment = await _repository.GetAppointmentByIdAsync(id);
-//            return appointment == null ? null : _mapper.Map<AppointmentDTO>(appointment);
-//        }
-
-//        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsByNameAsync(string name)
-//        {
-//            var appointments = await _repository.GetAppointmentsByNameAsync(name);
-//            return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
-//        }
-
-//        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsByDateAsync(DateTime date)
-//        {
-//            var appointments = await _repository.GetAppointmentsByDateAsync(date);
-//            return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
-//        }
-
-//        public async Task AddAppointmentAsync(AppointmentDTO appointmentDto)
-//        {
-//            var appointment = _mapper.Map<Appointment>(appointmentDto);
-//            await _repository.AddAppointmentAsync(appointment);
-//        }
-
-//        public async Task UpdateAppointmentAsync(int id, AppointmentDTO appointmentDto)
-//        {
-//            var appointment = await _repository.GetAppointmentByIdAsync(id);
-//            if (appointment != null)
-//            {
-//                _mapper.Map(appointmentDto, appointment);
-//                await _repository.UpdateAppointmentAsync(appointment);
-//            }
-//        }
-
-//        public async Task<bool> CancelAppointmentAsync(int id)
-//        {
-//            var appointment = await _repository.GetAppointmentByIdAsync(id);
-//            if (appointment != null)
-//            {
-//                appointment.Status = "Cancelled";
-//                await _repository.UpdateAppointmentAsync(appointment);
-//                return true;
-//            }
-//            return false;
-//        }
-
-//        public async Task DeleteAppointmentAsync(int id)
-//        {
-//            await _repository.DeleteAppointmentAsync(id);
-//        }
-//    }
-//}
-
-
-
-
-
-
-
-using AppointmentManagementAPI.DTOs;
-using AppointmentManagementAPI.Models;
+﻿using AppointmentManagementAPI.DTOs;
 using AppointmentManagementAPI.Repositories;
-using AutoMapper;
+using AppointmentManagementAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,29 +11,71 @@ namespace AppointmentManagementAPI.Services
     public class AppointmentService : IAppointmentService
     {
         private readonly IAppointmentRepository _repository;
-        private readonly IMapper _mapper;
 
-        public AppointmentService(IAppointmentRepository repository, IMapper mapper)
+        public AppointmentService(IAppointmentRepository repository)
         {
             _repository = repository;
-            _mapper = mapper;
         }
 
         public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsAsync()
         {
             var appointments = await _repository.GetAppointmentsAsync();
-            return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
+            return appointments.Select(a => new AppointmentDTO
+            {
+                Id = a.Id,
+                RequestorName = a.RequestorName,
+                AppointmentDate = a.AppointmentDate,
+                Status = a.Status
+            });
         }
 
         public async Task<AppointmentDTO?> GetAppointmentByIdAsync(int id)
         {
             var appointment = await _repository.GetAppointmentByIdAsync(id);
-            return appointment == null ? null : _mapper.Map<AppointmentDTO>(appointment);
+            if (appointment == null) return null;
+
+            return new AppointmentDTO
+            {
+                Id = appointment.Id,
+                RequestorName = appointment.RequestorName,
+                AppointmentDate = appointment.AppointmentDate,
+                Status = appointment.Status
+            };
+        }
+
+        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsByNameAsync(string name)
+        {
+            var appointments = await _repository.GetAppointmentsByNameAsync(name);
+            return appointments.Select(a => new AppointmentDTO
+            {
+                Id = a.Id,
+                RequestorName = a.RequestorName,
+                AppointmentDate = a.AppointmentDate,
+                Status = a.Status
+            });
+        }
+
+        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsByDateAsync(DateTime date)
+        {
+            var appointments = await _repository.GetAppointmentsByDateAsync(date);
+            return appointments.Select(a => new AppointmentDTO
+            {
+                Id = a.Id,
+                RequestorName = a.RequestorName,
+                AppointmentDate = a.AppointmentDate,
+                Status = a.Status
+            });
         }
 
         public async Task AddAppointmentAsync(AppointmentDTO appointmentDto)
         {
-            var appointment = _mapper.Map<Appointment>(appointmentDto);
+            var appointment = new Appointment
+            {
+                RequestorName = appointmentDto.RequestorName,
+                AppointmentDate = appointmentDto.AppointmentDate,
+                Status = appointmentDto.Status ?? "Scheduled"  // Default to "Scheduled" if not provided
+            };
+
             await _repository.AddAppointmentAsync(appointment);
         }
 
@@ -130,46 +84,61 @@ namespace AppointmentManagementAPI.Services
             var appointment = await _repository.GetAppointmentByIdAsync(id);
             if (appointment != null)
             {
-                _mapper.Map(appointmentDto, appointment);
+                appointment.RequestorName = appointmentDto.RequestorName;
+                appointment.AppointmentDate = appointmentDto.AppointmentDate;
+                appointment.Status = appointmentDto.Status ?? appointment.Status; // Preserve status if not provided
+
                 await _repository.UpdateAppointmentAsync(appointment);
             }
-        }
-
-        // 🔹 Implement missing methods
-
-        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsByNameAsync(string name)
-        {
-            var appointments = await _repository.GetAppointmentsByNameAsync(name);
-            return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
-        }
-
-        public async Task<IEnumerable<AppointmentDTO>> GetAppointmentsByDateAsync(DateTime date)
-        {
-            var appointments = await _repository.GetAppointmentsByDateAsync(date);
-            return _mapper.Map<IEnumerable<AppointmentDTO>>(appointments);
-        }
-
-        public async Task<bool> CancelAppointmentAsync(int id)
-        {
-            var appointment = await _repository.GetAppointmentByIdAsync(id);
-            if (appointment != null)
-            {
-                appointment.Status = "Cancelled";
-                await _repository.UpdateAppointmentAsync(appointment);
-                return true;
-            }
-            return false;
         }
 
         public async Task<bool> DeleteAppointmentAsync(int id)
         {
+            return await _repository.DeleteAppointmentAsync(id);
+        }
+
+        public async Task<bool> CancelAppointmentAsync(int id)
+        {
+            return await _repository.CancelAppointmentAsync(id);
+        }
+
+        public async Task<bool> CompleteAppointmentAsync(int id)
+        {
+            return await _repository.CompleteAppointmentAsync(id);
+        }
+
+        public async Task<bool> CompleteAppointmentByNameAsync(string name)
+        {
+            return await _repository.CompleteAppointmentsByNameAsync(name);
+        }
+
+        public async Task<bool> RescheduleAppointmentAsync(int id, RescheduleRequestDTO requestDto)
+        {
             var appointment = await _repository.GetAppointmentByIdAsync(id);
             if (appointment != null)
             {
-                await _repository.DeleteAppointmentAsync(id);
+                appointment.AppointmentDate = requestDto.NewAppointmentDate;
+                appointment.Status = "Rescheduled";  // Set status to "Rescheduled"
+                await _repository.UpdateAppointmentAsync(appointment);
                 return true;
             }
             return false;
+        }
+
+        public async Task<bool> RescheduleAppointmentByNameAsync(string name, RescheduleRequestDTO requestDto)
+        {
+            var appointments = await _repository.GetAppointmentsByNameAsync(name);
+            bool updated = false;
+
+            foreach (var appointment in appointments)
+            {
+                appointment.AppointmentDate = requestDto.NewAppointmentDate;
+                appointment.Status = "Rescheduled";  // Set status to "Rescheduled"
+                await _repository.UpdateAppointmentAsync(appointment);
+                updated = true;
+            }
+
+            return updated;
         }
     }
 }

@@ -1,73 +1,4 @@
-﻿//using AppointmentManagementAPI.Data;
-//using AppointmentManagementAPI.Models;
-//using Microsoft.EntityFrameworkCore;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
-
-//namespace AppointmentManagementAPI.Repositories
-//{
-//    public class AppointmentRepository : IAppointmentRepository
-//    {
-//        private readonly ApplicationDbContext _context;
-
-//        public AppointmentRepository(ApplicationDbContext context)
-//        {
-//            _context = context;
-//        }
-
-//        public async Task<IEnumerable<Appointment>> GetAppointmentsAsync()
-//        {
-//            return await _context.Appointments.ToListAsync();
-//        }
-
-//        public async Task<Appointment?> GetAppointmentByIdAsync(int id)
-//        {
-//            return await _context.Appointments.FindAsync(id);
-//        }
-
-//        public async Task<IEnumerable<Appointment>> GetAppointmentsByNameAsync(string name)
-//        {
-//            return await _context.Appointments.Where(a => a.RequestorName.Contains(name)).ToListAsync();
-//        }
-
-//        public async Task<IEnumerable<Appointment>> GetAppointmentsByDateAsync(DateTime date)
-//        {
-//            return await _context.Appointments
-//                .Where(a => a.AppointmentDate.Date == date.Date)
-//                .ToListAsync();
-//        }
-
-//        public async Task AddAppointmentAsync(Appointment appointment)
-//        {
-//            await _context.Appointments.AddAsync(appointment);
-//            await _context.SaveChangesAsync();
-//        }
-
-//        public async Task UpdateAppointmentAsync(Appointment appointment)
-//        {
-//            _context.Appointments.Update(appointment);
-//            await _context.SaveChangesAsync();
-//        }
-
-//        public async Task DeleteAppointmentAsync(int id)
-//        {
-//            var appointment = await _context.Appointments.FindAsync(id);
-//            if (appointment != null)
-//            {
-//                _context.Appointments.Remove(appointment);
-//                await _context.SaveChangesAsync();
-//            }
-//        }
-//    }
-//}
-
-
-
-
-
-
+﻿
 
 
 
@@ -112,8 +43,6 @@ namespace AppointmentManagementAPI.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // 🔹 Implement missing methods
-
         public async Task<IEnumerable<Appointment>> GetAppointmentsByNameAsync(string name)
         {
             return await _context.Appointments
@@ -128,14 +57,83 @@ namespace AppointmentManagementAPI.Repositories
                 .ToListAsync();
         }
 
-        public async Task DeleteAppointmentAsync(int id)
+        public async Task<bool> DeleteAppointmentAsync(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment != null)
             {
                 _context.Appointments.Remove(appointment);
                 await _context.SaveChangesAsync();
+                return true;
             }
+            return false;
+        }
+
+        // ✅ Newly added methods
+        public async Task<bool> CancelAppointmentAsync(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment != null)
+            {
+                appointment.Status = "Cancelled";
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> CompleteAppointmentAsync(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment != null)
+            {
+                appointment.Status = "Completed";
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> CompleteAppointmentsByNameAsync(string name)
+        {
+            var appointments = await _context.Appointments.Where(a => a.RequestorName == name).ToListAsync();
+            if (appointments.Any())
+            {
+                foreach (var appointment in appointments)
+                {
+                    appointment.Status = "Completed";
+                }
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> RescheduleAppointmentAsync(int id, DateTime newDate)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment != null)
+            {
+                appointment.AppointmentDate = newDate;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> RescheduleAppointmentsByNameAsync(string name, DateTime newDate)
+        {
+            var appointments = await _context.Appointments.Where(a => a.RequestorName == name).ToListAsync();
+            if (appointments.Any())
+            {
+                foreach (var appointment in appointments)
+                {
+                    appointment.AppointmentDate = newDate;
+                }
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
         }
     }
 }

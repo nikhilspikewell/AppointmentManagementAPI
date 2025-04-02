@@ -1,24 +1,4 @@
-﻿//using AppointmentManagementAPI.Models;
-//using System;
-//using System.Collections.Generic;
-//using System.Threading.Tasks;
-
-//namespace AppointmentManagementAPI.Repositories
-//{
-//    public interface IAppointmentRepository
-//    {
-//        Task<IEnumerable<Appointment>> GetAppointmentsAsync();
-//        Task<Appointment?> GetAppointmentByIdAsync(int id);
-//        Task<IEnumerable<Appointment>> GetAppointmentsByNameAsync(string name);
-//        Task<IEnumerable<Appointment>> GetAppointmentsByDateAsync(DateTime date);
-//        Task AddAppointmentAsync(Appointment appointment);
-//        Task UpdateAppointmentAsync(Appointment appointment);
-//        Task DeleteAppointmentAsync(int id);
-//    }
-//}
-
-
-
+﻿
 
 
 using AppointmentManagementAPI.Models;
@@ -33,11 +13,16 @@ namespace AppointmentManagementAPI.Repositories
         Task<IEnumerable<Appointment>> GetAppointmentsAsync();
         Task<Appointment?> GetAppointmentByIdAsync(int id);
         Task AddAppointmentAsync(Appointment appointment);
-        Task UpdateAppointmentAsync(Appointment appointment);
-
-        // 🔹 Add missing methods
+        Task UpdateAppointmentAsync(Appointment appointment); // ✅ Fixed method signature
         Task<IEnumerable<Appointment>> GetAppointmentsByNameAsync(string name);
         Task<IEnumerable<Appointment>> GetAppointmentsByDateAsync(DateTime date);
-        Task DeleteAppointmentAsync(int id);
+        Task<bool> DeleteAppointmentAsync(int id);
+
+        // ✅ Newly added methods
+        Task<bool> CancelAppointmentAsync(int id);
+        Task<bool> CompleteAppointmentAsync(int id);
+        Task<bool> CompleteAppointmentsByNameAsync(string name);
+        Task<bool> RescheduleAppointmentAsync(int id, DateTime newDate);
+        Task<bool> RescheduleAppointmentsByNameAsync(string name, DateTime newDate);
     }
 }
