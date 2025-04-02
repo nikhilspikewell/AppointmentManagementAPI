@@ -245,7 +245,7 @@ namespace AppointmentManagementAPI.Controllers
         public async Task<IActionResult> CancelAppointment(int id)
         {
             var result = await _service.CancelAppointmentAsync(id);
-            return result ? NoContent() : NotFound($"No appointment found with ID: {id} to cancel.");
+            return result ? Ok($"Appointments for {id} successfully cancelled.") : NotFound($"No appointment found with ID: {id} to cancel.");
         }
 
         [HttpDelete("{id}")]
@@ -257,7 +257,11 @@ namespace AppointmentManagementAPI.Controllers
                 return NotFound($"No appointment found with ID: {id} to delete.");
             }
             await _service.DeleteAppointmentAsync(id);
-            return NoContent();
+            return Ok(new
+            {
+                message = "Appointment deleted successfully",
+                
+            });
         }
     }
 }
