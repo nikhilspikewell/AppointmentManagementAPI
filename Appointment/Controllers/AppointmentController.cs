@@ -60,6 +60,41 @@ namespace AppointmentManagementAPI.Controllers
             return Ok(appointments);
         }
 
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> AddAppointment([FromBody] AppointmentDTO appointmentDto)
+        //{
+        //    if (appointmentDto == null)
+        //    {
+        //        return BadRequest("Invalid appointment data.");
+        //    }
+
+        //    // Define valid status values
+        //    var validStatuses = new HashSet<string> { "Scheduled", "Completed", "Pending", "Cancelled", "Rescheduled" };
+
+        //    // Validate Status
+        //    if (!validStatuses.Contains(appointmentDto.Status))
+        //    {
+        //        return BadRequest($"Invalid status: {appointmentDto.Status}. Allowed values are: {string.Join(", ", validStatuses)}.");
+        //    }
+
+        //    // Convert to PST
+        //    TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        //    DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
+
+        //    // Validate appointment time in PST
+        //    if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
+        //    {
+        //        return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
+        //    }
+
+        //    await _service.AddAppointmentAsync(appointmentDto);
+        //    return CreatedAtAction(nameof(GetAppointment), new { id = appointmentDto.Id }, appointmentDto);
+        //}
+
+
+
         [HttpPost]
         public async Task<IActionResult> AddAppointment([FromBody] AppointmentDTO appointmentDto)
         {
@@ -68,19 +103,33 @@ namespace AppointmentManagementAPI.Controllers
                 return BadRequest("Invalid appointment data.");
             }
 
-            // Convert to PST
+            var validStatuses = new HashSet<string> { "Scheduled", "Completed", "Pending", "Cancelled", "Rescheduled" };
+
+            if (!validStatuses.Contains(appointmentDto.Status))
+            {
+                return BadRequest($"Invalid status: {appointmentDto.Status}. Allowed values are: {string.Join(", ", validStatuses)}.");
+            }
+
             TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
 
-            // Validate appointment time in PST
             if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
             {
                 return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
             }
 
-            await _service.AddAppointmentAsync(appointmentDto);
-            return CreatedAtAction(nameof(GetAppointment), new { id = appointmentDto.Id }, appointmentDto);
+            int appointmentId = await _service.AddAppointmentAsync(appointmentDto);
+
+            return CreatedAtAction(nameof(GetAppointment), new { id = appointmentId }, new
+            {
+                Id = appointmentId,
+                RequestorName = appointmentDto.RequestorName,
+                AppointmentDate = appointmentDto.AppointmentDate,
+                Status = appointmentDto.Status
+            });
         }
+
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)

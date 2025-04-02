@@ -67,17 +67,36 @@ namespace AppointmentManagementAPI.Services
             });
         }
 
-        public async Task AddAppointmentAsync(AppointmentDTO appointmentDto)
+        //public async Task AddAppointmentAsync(AppointmentDTO appointmentDto)
+        //{
+        //    var appointment = new Appointment
+        //    {
+        //        RequestorName = appointmentDto.RequestorName,
+        //        AppointmentDate = appointmentDto.AppointmentDate,
+        //        Status = appointmentDto.Status ?? "Scheduled"  // Default to "Scheduled" if not provided
+        //    };
+
+        //    await _repository.AddAppointmentAsync(appointment);
+        //}
+
+        public async Task<int> AddAppointmentAsync(AppointmentDTO appointmentDto)
         {
             var appointment = new Appointment
             {
                 RequestorName = appointmentDto.RequestorName,
                 AppointmentDate = appointmentDto.AppointmentDate,
-                Status = appointmentDto.Status ?? "Scheduled"  // Default to "Scheduled" if not provided
+                Status = appointmentDto.Status ?? "Scheduled"
             };
 
-            await _repository.AddAppointmentAsync(appointment);
+            int appointmentId = await _repository.AddAppointmentAsync(appointment);
+            return appointmentId;
         }
+
+
+
+
+
+
 
         public async Task UpdateAppointmentAsync(int id, AppointmentDTO appointmentDto)
         {

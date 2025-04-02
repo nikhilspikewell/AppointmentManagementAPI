@@ -11,7 +11,10 @@ namespace AppointmentManagementAPI.Services
         Task<AppointmentDTO?> GetAppointmentByIdAsync(int id);
         Task<IEnumerable<AppointmentDTO>> GetAppointmentsByNameAsync(string name);
         Task<IEnumerable<AppointmentDTO>> GetAppointmentsByDateAsync(DateTime date);
-        Task AddAppointmentAsync(AppointmentDTO appointmentDto);
+        //Task AddAppointmentAsync(AppointmentDTO appointmentDto);
+
+        Task<int> AddAppointmentAsync(AppointmentDTO appointmentDto);
+
         Task UpdateAppointmentAsync(int id, AppointmentDTO appointmentDto);
         Task<bool> DeleteAppointmentAsync(int id);
         Task<bool> CancelAppointmentAsync(int id);

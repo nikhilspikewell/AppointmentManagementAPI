@@ -27,11 +27,21 @@ namespace AppointmentManagementAPI.Repositories
             return await _context.Appointments.FindAsync(id);
         }
 
-        public async Task AddAppointmentAsync(Appointment appointment)
+        //public async Task AddAppointmentAsync(Appointment appointment)
+        //{
+        //    _context.Appointments.Add(appointment);
+        //    await _context.SaveChangesAsync();
+        //}
+
+
+        public async Task<int> AddAppointmentAsync(Appointment appointment)
         {
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
+            return appointment.Id; // ✅ Return the generated ID
         }
+
+
 
         public async Task UpdateAppointmentAsync(Appointment appointment)
         {
