@@ -1,4 +1,3 @@
-
 using AppointmentManagementAPI.Data;
 using AppointmentManagementAPI.Repositories;
 using AppointmentManagementAPI.Services;

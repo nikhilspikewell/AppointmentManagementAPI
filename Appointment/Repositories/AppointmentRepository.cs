@@ -1,8 +1,4 @@
-﻿
-
-
-
-using AppointmentManagementAPI.Data;
+﻿using AppointmentManagementAPI.Data;
 using AppointmentManagementAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using System;

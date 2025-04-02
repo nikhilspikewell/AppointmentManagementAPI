@@ -1,5 +1,4 @@
-﻿
-using AppointmentManagementAPI.DTOs;
+﻿using AppointmentManagementAPI.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
