@@ -20,7 +20,11 @@ namespace AppointmentManagementAPI.Repositories
         //  Newly added methods
         Task<bool> CancelAppointmentAsync(int id);
         Task<bool> CompleteAppointmentAsync(int id);
+
         Task<bool> CompleteAppointmentsByNameAsync(string name);
+
+
+
         Task<bool> RescheduleAppointmentAsync(int id, DateTime newDate);
         Task<bool> RescheduleAppointmentsByNameAsync(string name, DateTime newDate);
     }

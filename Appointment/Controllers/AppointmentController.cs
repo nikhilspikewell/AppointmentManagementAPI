@@ -62,7 +62,7 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
-  
+
 
 
         [HttpPost]
@@ -109,7 +109,6 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)
         {
@@ -151,18 +150,24 @@ namespace AppointmentManagementAPI.Controllers
         {
             var result = await _service.CompleteAppointmentAsync(id);
 
-            if (result == null)
-            {
-                return NotFound($"No appointment found with ID: {id}.");
-            }
+            //if (result == null)
+            //{
+            //    return NotFound($"No appointment found with ID: {id}.");
+            //}
 
-            if (!result) // If false, it means the appointment is cancelled
+            if (!result)
             {
-                return BadRequest("Cannot complete a cancelled appointment.");
+                return NotFound($"No appointment found with ID: {id} or it is cancelled.");
             }
 
             return Ok($"Appointment {id} marked as completed.");
         }
+
+
+
+
+
+
         [HttpPut("reschedule/{id}")]
         public async Task<IActionResult> RescheduleAppointment(int id, [FromBody] RescheduleRequestDTO request)
         {
@@ -179,25 +184,27 @@ namespace AppointmentManagementAPI.Controllers
             var result = await _service.RescheduleAppointmentAsync(id, request);
             return result ? Ok($"Appointment {id} rescheduled successfully.") : NotFound($"Rescheduling failed. Check appointment ID or requestor name.");
         }
-      
+
 
         [HttpPut("complete/by-name/{name}")]
         public async Task<IActionResult> CompleteAppointmentByName(string name)
         {
             var result = await _service.CompleteAppointmentByNameAsync(name);
 
-            if (result == null)
+            //if (result == null)
+            //{
+            //    return NotFound($"No appointments found for {name}.");
+            //}
+            if (!result)
             {
-                return NotFound($"No appointments found for {name}.");
-            }
-
-            if (!result) // If false, it means at least one appointment was cancelled
-            {
-                return BadRequest("Cancelled appointments cannot be marked as completed.");
+                return NotFound($"No appointments found for {name} or his/her appointments are cancelled.");
             }
 
             return Ok($"Appointments for {name} marked as completed.");
         }
+
+
+
 
         [HttpPut("reschedule/by-name/{name}")]
         public async Task<IActionResult> RescheduleAppointmentByName(string name, [FromBody] RescheduleRequestDTO request)
@@ -232,6 +239,7 @@ namespace AppointmentManagementAPI.Controllers
                 return NotFound($"No appointment found with ID: {id} to delete.");
             }
             await _service.DeleteAppointmentAsync(id);
+
             return Ok(new
             {
                 message = "Appointment deleted successfully",

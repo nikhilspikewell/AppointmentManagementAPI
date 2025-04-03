@@ -83,37 +83,50 @@ namespace AppointmentManagementAPI.Repositories
             return false;
         }
 
-       
+
+
 
         public async Task<bool> CompleteAppointmentAsync(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
+
             if (appointment == null)
             {
-                return false; //  No appointment found
+                return false; // Indicating no appointment found
             }
+
             if (appointment.Status == "Cancelled")
             {
-                return false; //  Cannot complete a cancelled appointment
+                return false; // Indicating appointment is cancelled
             }
 
             appointment.Status = "Completed";
             await _context.SaveChangesAsync();
-            return true;
+            return true; // Successfully completed
         }
+
+
+
+
+
 
         public async Task<bool> CompleteAppointmentsByNameAsync(string name)
         {
             var appointments = await _context.Appointments
-                .Where(a => a.RequestorName == name && a.Status != "Cancelled") //  Filter out cancelled appointments
+                .Where(a => a.RequestorName == name)
                 .ToListAsync();
 
             if (!appointments.Any())
             {
-                return false; //  No valid appointments to complete
+                return false; // No appointments found
             }
 
-            foreach (var appointment in appointments)
+            if (appointments.All(a => a.Status == "Cancelled"))
+            {
+                return false; // All appointments are cancelled
+            }
+
+            foreach (var appointment in appointments.Where(a => a.Status != "Cancelled"))
             {
                 appointment.Status = "Completed";
             }
@@ -121,6 +134,7 @@ namespace AppointmentManagementAPI.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
 
 
         public async Task<bool> RescheduleAppointmentAsync(int id, DateTime newDate)

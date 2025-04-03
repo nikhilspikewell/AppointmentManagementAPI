@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentManagementAPI.Services
 {
@@ -111,10 +112,14 @@ namespace AppointmentManagementAPI.Services
             return await _repository.CompleteAppointmentAsync(id);
         }
 
+
+
         public async Task<bool> CompleteAppointmentByNameAsync(string name)
         {
             return await _repository.CompleteAppointmentsByNameAsync(name);
         }
+
+
 
         public async Task<bool> RescheduleAppointmentAsync(int id, RescheduleRequestDTO requestDto)
         {
