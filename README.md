@@ -44,10 +44,10 @@ FROM [Appointment].[dbo].[Appointments];
 
 ## Features
 - Add new appointments
-- Complete appointments
-- Re-schedule appointments
+- Complete appointments by id or requestor name
+- Re-schedule appointments by id or requestor name
 - Lookup appointments by date or requestor name
-- Cancel appointments
+- Cancel appointments by id
 - Appointments can be created from any time zone but must be scheduled between **9 AM PST to 7 PM PST**
 
 ## Implemented Functionalities
