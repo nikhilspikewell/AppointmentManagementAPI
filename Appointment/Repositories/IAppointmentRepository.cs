@@ -9,15 +9,15 @@ namespace AppointmentManagementAPI.Repositories
     {
         Task<IEnumerable<Appointment>> GetAppointmentsAsync();
         Task<Appointment?> GetAppointmentByIdAsync(int id);
-        //Task AddAppointmentAsync(Appointment appointment);
+        
 
         Task<int> AddAppointmentAsync(Appointment appointment);
-        Task UpdateAppointmentAsync(Appointment appointment); // ✅ Fixed method signature
+        Task UpdateAppointmentAsync(Appointment appointment); //  Fixed method signature
         Task<IEnumerable<Appointment>> GetAppointmentsByNameAsync(string name);
         Task<IEnumerable<Appointment>> GetAppointmentsByDateAsync(DateTime date);
         Task<bool> DeleteAppointmentAsync(int id);
 
-        // ✅ Newly added methods
+        //  Newly added methods
         Task<bool> CancelAppointmentAsync(int id);
         Task<bool> CompleteAppointmentAsync(int id);
         Task<bool> CompleteAppointmentsByNameAsync(string name);

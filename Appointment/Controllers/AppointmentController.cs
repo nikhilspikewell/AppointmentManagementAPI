@@ -62,37 +62,7 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
-        //[HttpPost]
-        //public async Task<IActionResult> AddAppointment([FromBody] AppointmentDTO appointmentDto)
-        //{
-        //    if (appointmentDto == null)
-        //    {
-        //        return BadRequest("Invalid appointment data.");
-        //    }
-
-        //    // Define valid status values
-        //    var validStatuses = new HashSet<string> { "Scheduled", "Completed", "Pending", "Cancelled", "Rescheduled" };
-
-        //    // Validate Status
-        //    if (!validStatuses.Contains(appointmentDto.Status))
-        //    {
-        //        return BadRequest($"Invalid status: {appointmentDto.Status}. Allowed values are: {string.Join(", ", validStatuses)}.");
-        //    }
-
-        //    // Convert to PST
-        //    TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-        //    DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
-
-        //    // Validate appointment time in PST
-        //    if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
-        //    {
-        //        return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
-        //    }
-
-        //    await _service.AddAppointmentAsync(appointmentDto);
-        //    return CreatedAtAction(nameof(GetAppointment), new { id = appointmentDto.Id }, appointmentDto);
-        //}
-
+  
 
 
         [HttpPost]
@@ -112,10 +82,18 @@ namespace AppointmentManagementAPI.Controllers
 
             TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
+            DateTime currentPST = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pstZone);
 
+            //  Prevent past appointments
+            if (appointmentPST < currentPST)
+            {
+                return BadRequest($"Appointments cannot be scheduled in the past. Current time: {currentPST:yyyy-MM-dd hh:mm tt} PST.");
+            }
+
+            //  Restrict appointment times (9 AM - 7 PM PST)
             if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
             {
-                return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
+                return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST.");
             }
 
             int appointmentId = await _service.AddAppointmentAsync(appointmentDto);
@@ -131,33 +109,6 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)
-        //{
-        //    if (appointmentDto == null)
-        //    {
-        //        return BadRequest("Invalid appointment data.");
-        //    }
-
-        //    var existingAppointment = await _service.GetAppointmentByIdAsync(id);
-        //    if (existingAppointment == null)
-        //    {
-        //        return NotFound($"No appointment found with ID: {id}");
-        //    }
-
-        //    // Convert to PST
-        //    TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-        //    DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
-
-        //    // Validate appointment time in PST
-        //    if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
-        //    {
-        //        return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
-        //    }
-
-        //    await _service.UpdateAppointmentAsync(id, appointmentDto);
-        //    return NoContent();
-        //}
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)
@@ -194,13 +145,24 @@ namespace AppointmentManagementAPI.Controllers
         }
 
 
+
         [HttpPut("complete/{id}")]
         public async Task<IActionResult> CompleteAppointment(int id)
         {
             var result = await _service.CompleteAppointmentAsync(id);
-            return result ? Ok($"Appointment {id} marked as completed.") : NotFound($"No appointment found with ID: {id}.");
-        }
 
+            if (result == null)
+            {
+                return NotFound($"No appointment found with ID: {id}.");
+            }
+
+            if (!result) // If false, it means the appointment is cancelled
+            {
+                return BadRequest("Cannot complete a cancelled appointment.");
+            }
+
+            return Ok($"Appointment {id} marked as completed.");
+        }
         [HttpPut("reschedule/{id}")]
         public async Task<IActionResult> RescheduleAppointment(int id, [FromBody] RescheduleRequestDTO request)
         {
@@ -217,11 +179,24 @@ namespace AppointmentManagementAPI.Controllers
             var result = await _service.RescheduleAppointmentAsync(id, request);
             return result ? Ok($"Appointment {id} rescheduled successfully.") : NotFound($"Rescheduling failed. Check appointment ID or requestor name.");
         }
+      
+
         [HttpPut("complete/by-name/{name}")]
         public async Task<IActionResult> CompleteAppointmentByName(string name)
         {
             var result = await _service.CompleteAppointmentByNameAsync(name);
-            return result ? Ok($"Appointments for {name} marked as completed.") : NotFound($"No appointments found for {name}.");
+
+            if (result == null)
+            {
+                return NotFound($"No appointments found for {name}.");
+            }
+
+            if (!result) // If false, it means at least one appointment was cancelled
+            {
+                return BadRequest("Cancelled appointments cannot be marked as completed.");
+            }
+
+            return Ok($"Appointments for {name} marked as completed.");
         }
 
         [HttpPut("reschedule/by-name/{name}")]

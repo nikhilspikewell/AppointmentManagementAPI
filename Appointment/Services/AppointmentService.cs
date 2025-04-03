@@ -67,17 +67,7 @@ namespace AppointmentManagementAPI.Services
             });
         }
 
-        //public async Task AddAppointmentAsync(AppointmentDTO appointmentDto)
-        //{
-        //    var appointment = new Appointment
-        //    {
-        //        RequestorName = appointmentDto.RequestorName,
-        //        AppointmentDate = appointmentDto.AppointmentDate,
-        //        Status = appointmentDto.Status ?? "Scheduled"  // Default to "Scheduled" if not provided
-        //    };
 
-        //    await _repository.AddAppointmentAsync(appointment);
-        //}
 
         public async Task<int> AddAppointmentAsync(AppointmentDTO appointmentDto)
         {
@@ -91,12 +81,6 @@ namespace AppointmentManagementAPI.Services
             int appointmentId = await _repository.AddAppointmentAsync(appointment);
             return appointmentId;
         }
-
-
-
-
-
-
 
         public async Task UpdateAppointmentAsync(int id, AppointmentDTO appointmentDto)
         {
@@ -120,6 +104,7 @@ namespace AppointmentManagementAPI.Services
         {
             return await _repository.CancelAppointmentAsync(id);
         }
+
 
         public async Task<bool> CompleteAppointmentAsync(int id)
         {
@@ -161,3 +146,10 @@ namespace AppointmentManagementAPI.Services
         }
     }
 }
+
+
+
+
+
+
+

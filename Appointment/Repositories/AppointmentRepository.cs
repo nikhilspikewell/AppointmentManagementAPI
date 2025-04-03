@@ -27,18 +27,13 @@ namespace AppointmentManagementAPI.Repositories
             return await _context.Appointments.FindAsync(id);
         }
 
-        //public async Task AddAppointmentAsync(Appointment appointment)
-        //{
-        //    _context.Appointments.Add(appointment);
-        //    await _context.SaveChangesAsync();
-        //}
-
+   
 
         public async Task<int> AddAppointmentAsync(Appointment appointment)
         {
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
-            return appointment.Id; // ✅ Return the generated ID
+            return appointment.Id; // Return the generated ID
         }
 
 
@@ -75,7 +70,7 @@ namespace AppointmentManagementAPI.Repositories
             return false;
         }
 
-        // ✅ Newly added methods
+        //  Newly added methods
         public async Task<bool> CancelAppointmentAsync(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
@@ -88,32 +83,45 @@ namespace AppointmentManagementAPI.Repositories
             return false;
         }
 
+       
+
         public async Task<bool> CompleteAppointmentAsync(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment != null)
+            if (appointment == null)
             {
-                appointment.Status = "Completed";
-                await _context.SaveChangesAsync();
-                return true;
+                return false; //  No appointment found
             }
-            return false;
+            if (appointment.Status == "Cancelled")
+            {
+                return false; //  Cannot complete a cancelled appointment
+            }
+
+            appointment.Status = "Completed";
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> CompleteAppointmentsByNameAsync(string name)
         {
-            var appointments = await _context.Appointments.Where(a => a.RequestorName == name).ToListAsync();
-            if (appointments.Any())
+            var appointments = await _context.Appointments
+                .Where(a => a.RequestorName == name && a.Status != "Cancelled") //  Filter out cancelled appointments
+                .ToListAsync();
+
+            if (!appointments.Any())
             {
-                foreach (var appointment in appointments)
-                {
-                    appointment.Status = "Completed";
-                }
-                await _context.SaveChangesAsync();
-                return true;
+                return false; //  No valid appointments to complete
             }
-            return false;
+
+            foreach (var appointment in appointments)
+            {
+                appointment.Status = "Completed";
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
         }
+
 
         public async Task<bool> RescheduleAppointmentAsync(int id, DateTime newDate)
         {
