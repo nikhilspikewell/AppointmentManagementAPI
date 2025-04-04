@@ -168,22 +168,51 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
+        //[HttpPut("reschedule/{id}")]
+        //public async Task<IActionResult> RescheduleAppointment(int id, [FromBody] RescheduleRequestDTO request)
+        //{
+        //    // Convert to PST
+        //    TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        //    DateTime newAppointmentPST = TimeZoneInfo.ConvertTimeFromUtc(request.NewAppointmentDate.ToUniversalTime(), pstZone);
+
+        //    // Validate reschedule time in PST
+        //    if (newAppointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || newAppointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
+        //    {
+        //        return BadRequest($"Appointments can only be rescheduled between 9 AM and 7 PM PST. Requested time: {newAppointmentPST:yyyy-MM-dd hh:mm tt} PST");
+        //    }
+
+        //    var result = await _service.RescheduleAppointmentAsync(id, request);
+        //    return result ? Ok($"Appointment {id} rescheduled successfully.") : NotFound($"Rescheduling failed. Check appointment ID or requestor name.");
+        //}
+
         [HttpPut("reschedule/{id}")]
         public async Task<IActionResult> RescheduleAppointment(int id, [FromBody] RescheduleRequestDTO request)
         {
+            var existingAppointment = await _service.GetAppointmentByIdAsync(id);
+
+            if (existingAppointment == null)
+            {
+                return NotFound($"No appointment found with ID: {id}");
+            }
+
+            if (existingAppointment.Status == "Completed" || existingAppointment.Status == "Cancelled")
+            {
+                return BadRequest($"Cannot reschedule a {existingAppointment.Status.ToLower()} appointment.");
+            }
+
             // Convert to PST
             TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             DateTime newAppointmentPST = TimeZoneInfo.ConvertTimeFromUtc(request.NewAppointmentDate.ToUniversalTime(), pstZone);
 
-            // Validate reschedule time in PST
             if (newAppointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || newAppointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
             {
                 return BadRequest($"Appointments can only be rescheduled between 9 AM and 7 PM PST. Requested time: {newAppointmentPST:yyyy-MM-dd hh:mm tt} PST");
             }
 
             var result = await _service.RescheduleAppointmentAsync(id, request);
-            return result ? Ok($"Appointment {id} rescheduled successfully.") : NotFound($"Rescheduling failed. Check appointment ID or requestor name.");
+            return result ? Ok($"Appointment {id} rescheduled successfully.") : BadRequest("Rescheduling failed.");
         }
+
 
 
         [HttpPut("complete/by-name/{name}")]
@@ -206,22 +235,51 @@ namespace AppointmentManagementAPI.Controllers
 
 
 
+        //[HttpPut("reschedule/by-name/{name}")]
+        //public async Task<IActionResult> RescheduleAppointmentByName(string name, [FromBody] RescheduleRequestDTO request)
+        //{
+        //    // Convert to PST
+        //    TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        //    DateTime newAppointmentPST = TimeZoneInfo.ConvertTimeFromUtc(request.NewAppointmentDate.ToUniversalTime(), pstZone);
+
+        //    // Validate reschedule time in PST
+        //    if (newAppointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || newAppointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
+        //    {
+        //        return BadRequest($"Appointments can only be rescheduled between 9 AM and 7 PM PST. Requested time: {newAppointmentPST:yyyy-MM-dd hh:mm tt} PST");
+        //    }
+
+        //    var result = await _service.RescheduleAppointmentByNameAsync(name, request);
+        //    return result ? Ok($"Appointments for {name} rescheduled successfully.") : NotFound($"Rescheduling failed. No appointments found for {name}.");
+        //}
+
         [HttpPut("reschedule/by-name/{name}")]
         public async Task<IActionResult> RescheduleAppointmentByName(string name, [FromBody] RescheduleRequestDTO request)
         {
+            var appointments = await _service.GetAppointmentsByNameAsync(name);
+
+            if (appointments == null || !appointments.Any())
+            {
+                return NotFound($"No appointments found for {name}.");
+            }
+
+            if (appointments.Any(a => a.Status == "Completed" || a.Status == "Cancelled"))
+            {
+                return BadRequest($"Cannot reschedule appointments for {name} because his appointment is either completed or cancelled.");
+            }
+
             // Convert to PST
             TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             DateTime newAppointmentPST = TimeZoneInfo.ConvertTimeFromUtc(request.NewAppointmentDate.ToUniversalTime(), pstZone);
 
-            // Validate reschedule time in PST
             if (newAppointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || newAppointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
             {
                 return BadRequest($"Appointments can only be rescheduled between 9 AM and 7 PM PST. Requested time: {newAppointmentPST:yyyy-MM-dd hh:mm tt} PST");
             }
 
             var result = await _service.RescheduleAppointmentByNameAsync(name, request);
-            return result ? Ok($"Appointments for {name} rescheduled successfully.") : NotFound($"Rescheduling failed. No appointments found for {name}.");
+            return result ? Ok($"Appointments for {name} rescheduled successfully.") : BadRequest($"Rescheduling failed.");
         }
+
 
         [HttpPut("cancel/{id}")]
         public async Task<IActionResult> CancelAppointment(int id)
@@ -248,4 +306,7 @@ namespace AppointmentManagementAPI.Controllers
         }
     }
 }
+
+
+
 
