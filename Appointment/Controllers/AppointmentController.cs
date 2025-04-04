@@ -1,6 +1,7 @@
 ﻿using AppointmentManagementAPI.DTOs;
 using AppointmentManagementAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -108,7 +109,6 @@ namespace AppointmentManagementAPI.Controllers
         }
 
 
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] AppointmentDTO appointmentDto)
         {
@@ -123,24 +123,44 @@ namespace AppointmentManagementAPI.Controllers
                 return NotFound($"No appointment found with ID: {id}");
             }
 
+            if (existingAppointment.Status == "Completed" || existingAppointment.Status == "Cancelled")
+            {
+                return BadRequest($"Cannot update an appointment that is already {existingAppointment.Status}.");
+            }
+
             // Convert to PST
             TimeZoneInfo pstZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
             DateTime appointmentPST = TimeZoneInfo.ConvertTimeFromUtc(appointmentDto.AppointmentDate.ToUniversalTime(), pstZone);
 
-            // Validate appointment time in PST
+            if (appointmentPST.Date < DateTime.UtcNow.Date)
+            {
+                return BadRequest($"Cannot update to a past date. Provided date: {appointmentPST:yyyy-MM-dd}");
+            }
+
             if (appointmentPST.TimeOfDay < new TimeSpan(9, 0, 0) || appointmentPST.TimeOfDay > new TimeSpan(19, 0, 0))
             {
                 return BadRequest($"Appointments can only be scheduled between 9 AM and 7 PM PST. Requested time: {appointmentPST:yyyy-MM-dd hh:mm tt} PST");
             }
 
-            await _service.UpdateAppointmentAsync(id, appointmentDto);
-
-            return Ok(new
+            try
             {
-                message = "Appointment updated successfully",
-                id = id,
-                updatedTime = appointmentPST.ToString("yyyy-MM-dd hh:mm tt") + " PST"
-            });
+                await _service.UpdateAppointmentAsync(id, appointmentDto);
+                return Ok(new
+                {
+                    message = "Appointment updated successfully",
+                    id = id,
+                    updatedTime = appointmentPST.ToString("yyyy-MM-dd hh:mm tt") + " PST"
+                });
+            }
+            catch (DbUpdateException dbEx) when (dbEx.InnerException?.Message.Contains("CHK_Status") == true)
+            {
+                return BadRequest("Status must be one of: Scheduled, Completed, Pending, Cancelled, or Rescheduled.");
+            }
+            catch (Exception ex)
+            {
+                // For any other unexpected errors
+                return StatusCode(500, "An unexpected error occurred: " + ex.Message);
+            }
         }
 
 
